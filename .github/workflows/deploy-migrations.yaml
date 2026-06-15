@@ -24,26 +24,6 @@ jobs:
         workload_identity_provider: 'projects/947330204934/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
         service_account: 'spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com'
 
-    # Fix: We download the jar directly into a local "plugins" directory
-    - name: Download Cloud Spanner Liquibase Extension
-      run: |
-        mkdir -p plugins
-        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
-
-    # Fix: Create directory, download the jar, and open up permissions 
-    # so the container's isolated java user can read it.
-    - name: Download Cloud Spanner Liquibase Extension
-      run: |
-        mkdir -p plugins
-        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
-        chmod -R 755 plugins
-
-    - name: Download Cloud Spanner Liquibase Extension
-      run: |
-        mkdir -p plugins
-        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
-        chmod -R 755 plugins
-
     - name: Download Cloud Spanner Liquibase Extension
       run: |
         mkdir -p plugins
@@ -59,6 +39,7 @@ jobs:
           -e LIQUIBASE_LAUNCHER_CP="/liquibase/spanner-extension/liquibase-spanner-all.jar" \
           liquibase/liquibase:4.27 \
           --changelog-file=/liquibase/workspace/database/changelog.xml \
+          --driver=com.google.cloud.spanner.jdbc.JdbcDriver \
           --search-path=/liquibase/workspace \
           --url=jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db \
           update

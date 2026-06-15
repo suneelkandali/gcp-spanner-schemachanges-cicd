@@ -14,7 +14,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="OwnerEmail" type="VARCHAR(255)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="CreatedTimestamp" type="TIMESTAMP"/>
         </createTable>
