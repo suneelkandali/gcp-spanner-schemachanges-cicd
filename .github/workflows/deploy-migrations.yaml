@@ -44,12 +44,19 @@ jobs:
         curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
         chmod -R 755 plugins
 
+    - name: Download Cloud Spanner Liquibase Extension
+      run: |
+        mkdir -p plugins
+        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
+        chmod -R 755 plugins
+
     - name: Run Liquibase Migration
       run: |
         docker run --rm \
           -v "${{ github.workspace }}:/liquibase/workspace" \
-          -v "${{ github.workspace }}/plugins:/liquibase/internal/lib" \
+          -v "${{ github.workspace }}/plugins:/liquibase/spanner-extension" \
           -e GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
+          -e LIQUIBASE_LAUNCHER_CP="/liquibase/spanner-extension/liquibase-spanner-all.jar" \
           liquibase/liquibase:4.27 \
           --changelog-file=/liquibase/workspace/database/changelog.xml \
           --search-path=/liquibase/workspace \
