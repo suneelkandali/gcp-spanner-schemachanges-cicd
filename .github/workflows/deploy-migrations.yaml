@@ -22,7 +22,7 @@ jobs:
       uses: google-github-actions/auth@v2
       with:
         # Replace 1234567890 with your numeric Project Number
-        workload_identity_provider: 'projects/1234567890/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+        workload_identity_provider: 'projects/947330204934/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
         service_account: 'spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com'
 
     # Fixes: Driver Classloader Missing Error

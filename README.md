@@ -8,11 +8,9 @@ A CI/CD pipeline for managing Google Cloud Spanner database schema migrations us
 
 Before you begin, ensure the following tools are installed on your machine:
 
-| Tool | Version Required | Install Command (macOS) |
-|------|-----------------|------------------------|
-| Docker | 20.10+ | `brew install --cask docker` |
-| `gcloud` CLI | 450+ | `brew install --cask google-cloud-sdk` |
-| `curl` | Any | Pre-installed on macOS / Linux |
+- **Docker** — Version 20.10+ — Install: `brew install --cask docker`
+- **`gcloud` CLI** — Version 450+ — Install: `brew install --cask google-cloud-sdk`
+- **`curl`** — Any version — Pre-installed on macOS / Linux
 
 You also need a GCP project (`gcp-spannerdb-cicd`) with the **Cloud Spanner API** enabled.
 
@@ -142,16 +140,14 @@ docker run --rm \
 
 **What each flag does:**
 
-| Flag / Volume | Purpose |
-|--------------|---------|
-| `--rm` | Automatically removes the container after execution |
-| `-v "$PWD":/liquibase/workspace` | Mounts the project directory so Liquibase can read the changelogs |
-| `-v "$PWD/liquibase-spanner-all.jar":/liquibase/internal/lib/liquibase-spanner-all.jar` | Injects the Spanner JDBC driver into Liquibase's classpath |
-| `--net=host` | Lets the container access the emulator on `localhost:9020` |
-| `--defaults-file=...` | Points to `.liquibase.properties` for driver and changelog config |
-| `--search-path=...` | Tells Liquibase where to look for changelog files |
-| `--url=jdbc:cloudspanner:...` | The JDBC connection URL with `autoConfigEmulator=true` to auto-detect the emulator endpoint |
-| `update` | Executes all pending changeSets |
+- **`--rm`** — Automatically removes the container after execution
+- **`-v "$PWD":/liquibase/workspace`** — Mounts the project directory so Liquibase can read the changelogs
+- **`-v "$PWD/liquibase-spanner-all.jar":/liquibase/internal/lib/liquibase-spanner-all.jar`** — Injects the Spanner JDBC driver into Liquibase's classpath
+- **`--net=host`** — Lets the container access the emulator on `localhost:9020`
+- **`--defaults-file=...`** — Points to `.liquibase.properties` for driver and changelog config
+- **`--search-path=...`** — Tells Liquibase where to look for changelog files
+- **`--url=jdbc:cloudspanner:...`** — The JDBC connection URL with `autoConfigEmulator=true` to auto-detect the emulator endpoint
+- **`update`** — Executes all pending changeSets
 
 **What Liquibase does internally:**
 1. Connects to the emulator via the JDBC URL.
@@ -232,13 +228,11 @@ gcloud spanner databases create test-db --instance=test-instance
 
 ### Troubleshooting the Emulator
 
-| Problem | Solution |
-|---------|----------|
-| `docker: Error response from daemon: port is already allocated` | Run `docker ps` and stop any existing `spanner-emulator` container, or use different port mappings. |
-| `gcloud` commands return `404 Not Found` | Ensure `api_endpoint_overrides/spanner` is set to `http://localhost:9020/`. |
-| `Connection refused` when running Liquibase | Verify the emulator is running with `docker ps`, and that `--net=host` is set. |
-| `DRIVER_NOT_FOUND` error | Ensure the `liquibase-spanner-all.jar` volume mount path is correct and the file exists in your working directory. |
-| Liquibase reports `liquibase.exception.LockException` | A previous migration may have crashed, leaving a lock in `DATABASECHANGELOGLOCK`. Delete and recreate the database (Option A above). |
+- **`docker: Error response from daemon: port is already allocated`** — Run `docker ps` and stop any existing `spanner-emulator` container, or use different port mappings.
+- **`gcloud` commands return `404 Not Found`** — Ensure `api_endpoint_overrides/spanner` is set to `http://localhost:9020/`.
+- **`Connection refused` when running Liquibase** — Verify the emulator is running with `docker ps`, and that `--net=host` is set.
+- **`DRIVER_NOT_FOUND` error** — Ensure the `liquibase-spanner-all.jar` volume mount path is correct and the file exists in your working directory.
+- **Liquibase reports `liquibase.exception.LockException`** — A previous migration may have crashed, leaving a lock in `DATABASECHANGELOGLOCK`. Delete and recreate the database (Option A above).
 
 ---
 
@@ -402,13 +396,11 @@ gcloud spanner instances delete prod-like-instance --quiet
 
 ### Troubleshooting GCP Instance Testing
 
-| Problem | Solution |
-|---------|----------|
-| `PermissionDenied: ... has not been granted` | Ensure your account has `roles/spanner.databaseAdmin` or `roles/spanner.databaseUser` on the project. |
-| `FAILED_PRECONDITION: ... API not enabled` | Run `gcloud services enable spanner.googleapis.com`. |
-| `UNAUTHENTICATED` or credential errors inside Docker | Ensure you ran `gcloud auth application-default login` and that the volume mount for `application_default_credentials.json` uses the correct path. |
-| `AlreadyExists: Database or instance already exists` | Use a different instance/database name, or delete the existing one first. |
-| Liquibase `LockException` on GCP | This usually means a previous migration crashed. Liquibase's `DATABASECHANGELOGLOCK` table is stuck. You can manually clear it by running: `gcloud spanner databases execute-sql target-app-db --instance=prod-like-instance --sql="DELETE FROM DATABASECHANGELOGLOCK WHERE ID = 1"` |
+- **`PermissionDenied: ... has not been granted`** — Ensure your account has `roles/spanner.databaseAdmin` or `roles/spanner.databaseUser` on the project.
+- **`FAILED_PRECONDITION: ... API not enabled`** — Run `gcloud services enable spanner.googleapis.com`.
+- **`UNAUTHENTICATED` or credential errors inside Docker** — Ensure you ran `gcloud auth application-default login` and that the volume mount for `application_default_credentials.json` uses the correct path.
+- **`AlreadyExists: Database or instance already exists`** — Use a different instance/database name, or delete the existing one first.
+- **Liquibase `LockException` on GCP** — This usually means a previous migration crashed. Liquibase's `DATABASECHANGELOGLOCK` table is stuck. You can manually clear it by running: `gcloud spanner databases execute-sql target-app-db --instance=prod-like-instance --sql="DELETE FROM DATABASECHANGELOGLOCK WHERE ID = 1"`
 
 ---
 
@@ -521,10 +513,8 @@ on:
       - 'database/**'
 ```
 
-| Setting | Value | Meaning |
-|---------|-------|---------|
-| `branches` | `["main"]` | The workflow only runs when code is pushed to the `main` branch. |
-| `paths` | `["database/**"]` | The workflow only triggers when files under the `database/` directory are changed (e.g., `database/changelog.xml`, `database/changelog-v1.0.0.xml`). |
+- **`branches`** — `["main"]` — The workflow only runs when code is pushed to the `main` branch.
+- **`paths`** — `["database/**"]` — The workflow only triggers when files under the `database/` directory are changed (e.g., `database/changelog.xml`, `database/changelog-v1.0.0.xml`).
 
 **Why this matters:** This means schema changes are automatically deployed on every push to `main` that touches a changelog file. A push that only changes `.github/` or other files will **not** trigger the migration.
 
@@ -541,11 +531,9 @@ jobs:
       id-token: 'write'
 ```
 
-| Setting | Value | Meaning |
-|---------|-------|---------|
-| `runs-on` | `ubuntu-latest` | The workflow runs on the latest Ubuntu GitHub-hosted runner. |
-| `permissions.contents` | `read` | The workflow can read the repository (e.g., checkout code). |
-| `permissions.id-token` | `write` | **Required for Workload Identity Federation.** This allows the runner to request an OIDC token from GitHub, which is exchanged for a GCP access token. |
+- **`runs-on`** — `ubuntu-latest` — The workflow runs on the latest Ubuntu GitHub-hosted runner.
+- **`permissions.contents`** — `read` — The workflow can read the repository (e.g., checkout code).
+- **`permissions.id-token`** — `write` — **Required for Workload Identity Federation.** This allows the runner to request an OIDC token from GitHub, which is exchanged for a GCP access token.
 
 #### Step 1: Checkout Code
 
@@ -574,12 +562,10 @@ jobs:
     service_account: 'spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com'
 ```
 
-| Setting | Value | Meaning |
-|---------|-------|---------|
-| `id` | `auth` | A step identifier used to reference the auth output later (e.g., `${{ steps.auth.outputs.credentials_file_path }}`). |
-| `uses` | `google-github-actions/auth@v2` | The official Google GitHub Action for GCP authentication. |
-| `workload_identity_provider` | `projects/1234567890/locations/global/workloadIdentityPools/github-pool/providers/github-provider` | The full resource path of the OIDC provider that GitHub Actions uses to authenticate with GCP. **Replace `1234567890` with your GCP project number.** |
-| `service_account` | `spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com` | The GCP service account that the workflow impersonates. This service account must have `roles/spanner.databaseAdmin` on the project. |
+- **`id`** — `auth` — A step identifier used to reference the auth output later (e.g., `${{ steps.auth.outputs.credentials_file_path }}`).
+- **`uses`** — `google-github-actions/auth@v2` — The official Google GitHub Action for GCP authentication.
+- **`workload_identity_provider`** — `projects/1234567890/locations/global/workloadIdentityPools/github-pool/providers/github-provider` — The full resource path of the OIDC provider that GitHub Actions uses to authenticate with GCP. **Replace `1234567890` with your GCP project number.**
+- **`service_account`** — `spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com` — The GCP service account that the workflow impersonates. This service account must have `roles/spanner.databaseAdmin` on the project.
 
 **How Workload Identity Federation works (no keys needed):**
 1. GitHub Actions generates an OIDC token for the workflow run.
@@ -628,15 +614,13 @@ jobs:
       update
 ```
 
-| Setting | Value | Meaning |
-|---------|-------|---------|
-| `uses` | `docker://liquibase/liquibase:4.27` | Runs the official Liquibase Docker image directly (no need for a separate `docker run` command). |
-| `env.GOOGLE_APPLICATION_CREDENTIALS` | `${{ steps.auth.outputs.credentials_file_path }}` | Points the JDBC driver to the temporary credential file generated by the auth step. This is how the driver authenticates with Spanner. |
-| `--changelog-file` | `database/changelog.xml` | The root changelog file that Liquibase reads. This is relative to the repository root. |
-| `--search-path` | `${{ github.workspace }}` | The directory where Liquibase searches for changelog files and other resources. Points to the repository root on the runner. |
-| `--classpath` | `${{ github.workspace }}/liquibase-libs/liquibase-spanner-all.jar` | Adds the Spanner JDBC driver JAR to Liquibase's classpath so it can load `com.google.cloud.spanner.jdbc.JdbcDriver`. |
-| `--url` | `jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db` | The JDBC connection URL that specifies the **project** (`gcp-spannerdb-cicd`), **instance** (`prod-like-instance`), and **database** (`target-app-db`). |
-| `update` | `update` | Tells Liquibase to apply all pending changeSets. |
+- **`uses`** — `docker://liquibase/liquibase:4.27` — Runs the official Liquibase Docker image directly (no need for a separate `docker run` command).
+- **`env.GOOGLE_APPLICATION_CREDENTIALS`** — `${{ steps.auth.outputs.credentials_file_path }}` — Points the JDBC driver to the temporary credential file generated by the auth step. This is how the driver authenticates with Spanner.
+- **`--changelog-file`** — `database/changelog.xml` — The root changelog file that Liquibase reads. This is relative to the repository root.
+- **`--search-path`** — `${{ github.workspace }}` — The directory where Liquibase searches for changelog files and other resources. Points to the repository root on the runner.
+- **`--classpath`** — `${{ github.workspace }}/liquibase-libs/liquibase-spanner-all.jar` — Adds the Spanner JDBC driver JAR to Liquibase's classpath so it can load `com.google.cloud.spanner.jdbc.JdbcDriver`.
+- **`--url`** — `jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db` — The JDBC connection URL that specifies the **project** (`gcp-spannerdb-cicd`), **instance** (`prod-like-instance`), and **database** (`target-app-db`).
+- **`update`** — Tells Liquibase to apply all pending changeSets.
 
 **How the JDBC URL is structured:**
 
@@ -668,15 +652,13 @@ jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/data
 
 When setting up this workflow for your own GCP Spanner project, you must update the following values:
 
-| Value | Location in YAML | Where to Find / How to Determine |
-|-------|-----------------|----------------------------------|
-| **GCP Project ID** | `--url=jdbc:cloudspanner:/projects/<PROJECT_ID>/...` | Run `gcloud config get project` to get your project ID. |
-| **GCP Project Number** | `workload_identity_provider: 'projects/<PROJECT_NUMBER>/...'` | Run `gcloud projects describe <PROJECT_ID> --format='value(projectNumber)'` to get the numeric project number. |
-| **Spanner Instance Name** | `--url=.../instances/<INSTANCE_NAME>/...` | Run `gcloud spanner instances list` to get the instance name. The workflow uses `prod-like-instance` by default. |
-| **Database Name** | `--url=.../databases/<DATABASE_NAME>` | Run `gcloud spanner databases list --instance=<INSTANCE_NAME>` to get the database name. The workflow uses `target-app-db` by default. |
-| **Service Account Email** | `service_account: '<SA>@<PROJECT_ID>.iam.gserviceaccount.com'` | The email of the service account created with `gcloud iam service-accounts create`. |
-| **Workload Identity Pool Name** | `workload_identity_provider: '.../workloadIdentityPools/<POOL_NAME>/...'` | The pool name created with `gcloud iam workload-identity-pools create`. |
-| **GitHub Repository** | `attribute-condition: "assertion.repository == '<OWNER>/<REPO>'"` | The full GitHub repository path (e.g., `suneelr.kandali@gmail.com/gcp-spanner-schemachanges-cicd`). |
+- **GCP Project ID** — Location in YAML: `--url=jdbc:cloudspanner:/projects/<PROJECT_ID>/...` — Run `gcloud config get project` to get your project ID.
+- **GCP Project Number** — Location in YAML: `workload_identity_provider: 'projects/<PROJECT_NUMBER>/...'` — Run `gcloud projects describe <PROJECT_ID> --format='value(projectNumber)'` to get the numeric project number.
+- **Spanner Instance Name** — Location in YAML: `--url=.../instances/<INSTANCE_NAME>/...` — Run `gcloud spanner instances list` to get the instance name. The workflow uses `prod-like-instance` by default.
+- **Database Name** — Location in YAML: `--url=.../databases/<DATABASE_NAME>` — Run `gcloud spanner databases list --instance=<INSTANCE_NAME>` to get the database name. The workflow uses `target-app-db` by default.
+- **Service Account Email** — Location in YAML: `service_account: '<SA>@<PROJECT_ID>.iam.gserviceaccount.com'` — The email of the service account created with `gcloud iam service-accounts create`.
+- **Workload Identity Pool Name** — Location in YAML: `workload_identity_provider: '.../workloadIdentityPools/<POOL_NAME>/...'` — The pool name created with `gcloud iam workload-identity-pools create`.
+- **GitHub Repository** — Location in YAML: `attribute-condition: "assertion.repository == '<OWNER>/<REPO>'"` — The full GitHub repository path (e.g., `suneelr.kandali@gmail.com/gcp-spanner-schemachanges-cicd`).
 
 ### Example: Customizing for a Different Instance and Database
 
@@ -702,13 +684,11 @@ If you want to target a different Spanner instance (e.g., `staging-instance`) an
 
 To understand how the workflow maps to the local emulator testing in Part 1, here is the equivalent mapping:
 
-| Workflow Parameter | Local Emulator Equivalent |
-|-------------------|--------------------------|
-| `--url=jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db` | `--url=jdbc:cloudspanner:/projects/mock-project/instances/test-instance/databases/test-db;autoConfigEmulator=true` |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Not needed (emulator has no auth) |
-| `--classpath= liquibase-libs/liquibase-spanner-all.jar` | `-v "$PWD/liquibase-spanner-all.jar":/liquibase/internal/lib/liquibase-spanner-all.jar` |
-| `--search-path=${{ github.workspace }}` | `-v "$PWD":/liquibase/workspace` + `--search-path=/liquibase/workspace` |
-| `--changelog-file=database/changelog.xml` | `--defaults-file=/liquibase/workspace/.liquibase.properties` |
+- **`--url`** — Workflow: `jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db` — Emulator: `jdbc:cloudspanner:/projects/mock-project/instances/test-instance/databases/test-db;autoConfigEmulator=true`
+- **`GOOGLE_APPLICATION_CREDENTIALS`** — Workflow: Required — Emulator: Not needed (emulator has no auth)
+- **`--classpath`** — Workflow: `liquibase-libs/liquibase-spanner-all.jar` — Emulator: `-v "$PWD/liquibase-spanner-all.jar":/liquibase/internal/lib/liquibase-spanner-all.jar`
+- **`--search-path`** — Workflow: `${{ github.workspace }}` — Emulator: `-v "$PWD":/liquibase/workspace` + `--search-path=/liquibase/workspace`
+- **`--changelog-file`** — Workflow: `database/changelog.xml` — Emulator: `--defaults-file=/liquibase/workspace/.liquibase.properties`
 
 The key differences between the workflow and local testing are:
 1. **Authentication:** The workflow uses `GOOGLE_APPLICATION_CREDENTIALS` with Workload Identity-fed credentials; the emulator uses no credentials.
@@ -759,16 +739,14 @@ Follow this workflow when adding or modifying database schemas:
 
 ## Quick Reference — Common Commands
 
-| Action | Command |
-|--------|---------|
-| Start emulator | `docker run -d -p 9010:9010 -p 9020:9020 --name spanner-emulator gcr.io/cloud-spanner-emulator/emulator` |
-| Stop emulator | `docker stop spanner-emulator && docker rm spanner-emulator` |
-| Create emulator instance | `gcloud spanner instances create test-instance --config=emulator-config --description="Local Testing" --nodes=1` |
-| Create emulator database | `gcloud spanner databases create test-db --instance=test-instance` |
-| Download JDBC driver | `curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o liquibase-spanner-all.jar` |
-| Run migration (emulator) | `docker run --rm -v "$PWD":/liquibase/workspace -v "$PWD/liquibase-spanner-all.jar":/liquibase/internal/lib/liquibase-spanner-all.jar --net=host liquibase/liquibase:4.27 --defaults-file=/liquibase/workspace/.liquibase.properties --search-path=/liquibase/workspace --url="jdbc:cloudspanner:/projects/mock-project/instances/test-instance/databases/test-db;autoConfigEmulator=true" update` |
-| Dry run (GCP) | Same as above but with `--url="jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db"`, add credential mounts, and use `update-sql` |
-| Run migration (GCP) | Same as dry run but use `update` instead of `update-sql` |
-| List tables | `gcloud spanner databases execute-sql <db> --instance=<instance> --sql="SELECT table_name FROM information_schema.tables WHERE table_schema = ''"` |
-| Switch back to default gcloud | `gcloud config configurations activate default && gcloud config unset api_endpoint_overrides/spanner && gcloud config unset auth/disable_credentials && gcloud config set project gcp-spannerdb-cicd` |
-| Delete GCP test instance | `gcloud spanner instances delete prod-like-instance --quiet` |
+- **Start emulator** — `docker run -d -p 9010:9010 -p 9020:9020 --name spanner-emulator gcr.io/cloud-spanner-emulator/emulator`
+- **Stop emulator** — `docker stop spanner-emulator && docker rm spanner-emulator`
+- **Create emulator instance** — `gcloud spanner instances create test-instance --config=emulator-config --description="Local Testing" --nodes=1`
+- **Create emulator database** — `gcloud spanner databases create test-db --instance=test-instance`
+- **Download JDBC driver** — `curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o liquibase-spanner-all.jar`
+- **Run migration (emulator)** — `docker run --rm -v "$PWD":/liquibase/workspace -v "$PWD/liquibase-spanner-all.jar":/liquibase/internal/lib/liquibase-spanner-all.jar --net=host liquibase/liquibase:4.27 --defaults-file=/liquibase/workspace/.liquibase.properties --search-path=/liquibase/workspace --url="jdbc:cloudspanner:/projects/mock-project/instances/test-instance/databases/test-db;autoConfigEmulator=true" update`
+- **Dry run (GCP)** — Same as above but with `--url="jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db"`, add credential mounts, and use `update-sql`
+- **Run migration (GCP)** — Same as dry run but use `update` instead of `update-sql`
+- **List tables** — `gcloud spanner databases execute-sql <db> --instance=<instance> --sql="SELECT table_name FROM information_schema.tables WHERE table_schema = ''"`
+- **Switch back to default gcloud** — `gcloud config configurations activate default && gcloud config unset api_endpoint_overrides/spanner && gcloud config unset auth/disable_credentials && gcloud config set project gcp-spannerdb-cicd`
+- **Delete GCP test instance** — `gcloud spanner instances delete prod-like-instance --quiet`
