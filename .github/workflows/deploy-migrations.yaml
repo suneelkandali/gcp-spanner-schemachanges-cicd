@@ -30,8 +30,14 @@ jobs:
         mkdir -p plugins
         curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
 
-    # Fix: We switch from the simple "uses: docker://" syntax to an explicit script 
-    # so we can map the plugins directory directly into Liquibase's internal library path.
+    # Fix: Create directory, download the jar, and open up permissions 
+    # so the container's isolated java user can read it.
+    - name: Download Cloud Spanner Liquibase Extension
+      run: |
+        mkdir -p plugins
+        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
+        chmod -R 755 plugins
+
     - name: Run Liquibase Migration
       run: |
         docker run --rm \
