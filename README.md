@@ -16,6 +16,44 @@ You also need a GCP project (`gcp-spannerdb-cicd`) with the **Cloud Spanner API*
 
 ---
 
+## Getting Started — Clone the Repository
+
+To run the code locally, first clone the repository and navigate into the project directory:
+
+```bash
+# Clone the repository
+git clone https://github.com/suneelkandali/gcp-spanner-schemachanges-cicd.git
+
+# Navigate into the project directory
+cd gcp-spanner-schemachanges-cicd
+```
+
+If the repository is in a different location or uses SSH, use the appropriate URL:
+
+```bash
+# Using SSH (if you have SSH access configured)
+git clone git@github.com:suneelkandali/gcp-spanner-schemachanges-cicd.git
+
+# Navigate into the project directory
+cd gcp-spanner-schemachanges-cicd
+```
+
+After cloning, verify the project files are present:
+
+```bash
+ls -la
+```
+
+You should see:
+- `database/` — Contains `changelog.xml` and `changelog-v1.0.0.xml`
+- `.liquibase.properties` — Liquibase configuration
+- `.github/workflows/deploy-migrations.yaml` — CI/CD workflow
+- `README.md` — This documentation file
+
+Once cloned, you can proceed to **Part 1** (local emulator testing) or **Part 2** (GCP instance testing) to run the migration.
+
+---
+
 ## Project Structure
 
 ```
@@ -258,11 +296,16 @@ gcloud config set project gcp-spannerdb-cicd
 - `gcloud auth application-default login` — Creates Application Default Credentials (ADC) at `~/.config/gcloud/application_default_credentials.json`, which the Spanner JDBC driver inside Docker will use for authentication.
 - Sets the active GCP project to `gcp-spannerdb-cicd`.
 
-### Step 2: Enable the Spanner API (if not already enabled)
+### Step 2: Enable Required APIs (if not already enabled)
 
 ```bash
 gcloud services enable spanner.googleapis.com
+gcloud services enable iamcredentials.googleapis.com --project=gcp-spannerdb-cicd
 ```
+
+**What this does:**
+- Enables the **Cloud Spanner API** so you can create instances and databases.
+- Enables the **IAM Credentials API** (`iamcredentials.googleapis.com`) which is required for Workload Identity Federation. Without this API, the `gcloud iam service-accounts` and workload identity pool commands will fail.
 
 ### Step 3: Create a Spanner Instance in GCP
 
@@ -417,6 +460,12 @@ The GitHub Actions workflow automatically applies schema migrations when changes
 
 ### GCP Service Account Setup (Required Before First Run)
 
+Before running these commands, ensure the IAM Credentials API is enabled:
+
+```bash
+gcloud services enable iamcredentials.googleapis.com --project=gcp-spannerdb-cicd
+```
+
 Run these commands once to set up the service account and Workload Identity Federation:
 
 ```bash
@@ -441,13 +490,13 @@ gcloud iam workload-identity-pools providers create-oidc github-provider \
     --workload-identity-pool="github-pool" \
     --display-name="GitHub Provider" \
     --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
-    --attribute-condition="assertion.repository.startsWith('suneelkandali/')"gcp-spanner-schemachanges-cicd'" \
+    --attribute-condition="assertion.repository == 'suneelkandali/gcp-spanner-schemachanges-cicd'" \
     --issuer-uri="https://token.actions.githubusercontent.com"
 
 # 5. Bind the service account to the GitHub repository via Workload Identity
 gcloud iam service-accounts add-iam-policy-binding spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com \
     --role="roles/iam.workloadIdentityUser" \
-    --member="principalSet://iam.googleapis.com/projects/947330204934/locations/global/workloadIdentityPools/github-pool/attribute.repository/suneelr.kandali@gmail.com/spanner-direct-migrations"
+    --member="principalSet://iam.googleapis.com/projects/947330204934/locations/global/workloadIdentityPools/github-pool/attribute.repository/suneelkandali/gcp-spanner-schemachanges-cicd"
 ```
 
 ### Workflow File Reference
@@ -658,7 +707,7 @@ When setting up this workflow for your own GCP Spanner project, you must update 
 - **Database Name** — Location in YAML: `--url=.../databases/<DATABASE_NAME>` — Run `gcloud spanner databases list --instance=<INSTANCE_NAME>` to get the database name. The workflow uses `target-app-db` by default.
 - **Service Account Email** — Location in YAML: `service_account: '<SA>@<PROJECT_ID>.iam.gserviceaccount.com'` — The email of the service account created with `gcloud iam service-accounts create`.
 - **Workload Identity Pool Name** — Location in YAML: `workload_identity_provider: '.../workloadIdentityPools/<POOL_NAME>/...'` — The pool name created with `gcloud iam workload-identity-pools create`.
-- **GitHub Repository** — Location in YAML: `attribute-condition: "assertion.repository == '<OWNER>/<REPO>'"` — The full GitHub repository path (e.g., `suneelr.kandali@gmail.com/gcp-spanner-schemachanges-cicd`).
+- **GitHub Repository** — Location in YAML: `attribute-condition: "assertion.repository == '<OWNER>/<REPO>'"` — The full GitHub repository path (e.g., `suneelkandali/gcp-spanner-schemachanges-cicd`).
 
 ### Example: Customizing for a Different Instance and Database
 
