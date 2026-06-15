@@ -34,9 +34,8 @@ jobs:
       run: |
         docker run --rm \
           -v "${{ github.workspace }}:/liquibase/workspace" \
-          -v "${{ github.workspace }}/plugins:/liquibase/spanner-extension" \
+          -v "${{ github.workspace }}/plugins:/liquibase/lib" \
           -e GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
-          -e LIQUIBASE_LAUNCHER_CP="/liquibase/spanner-extension/liquibase-spanner-all.jar" \
           liquibase/liquibase:4.27 \
           --changelog-file=/liquibase/workspace/database/changelog.xml \
           --driver=com.google.cloud.spanner.jdbc.JdbcDriver \
