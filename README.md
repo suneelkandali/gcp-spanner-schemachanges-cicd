@@ -441,7 +441,7 @@ gcloud iam workload-identity-pools providers create-oidc github-provider \
     --workload-identity-pool="github-pool" \
     --display-name="GitHub Provider" \
     --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
-    --attribute-condition="assertion.repository == 'suneelr.kandali@gmail.com/gcp-spanner-schemachanges-cicd'" \
+    --attribute-condition="assertion.repository.startsWith('suneelkandali/')"gcp-spanner-schemachanges-cicd'" \
     --issuer-uri="https://token.actions.githubusercontent.com"
 
 # 5. Bind the service account to the GitHub repository via Workload Identity
