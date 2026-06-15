@@ -38,6 +38,7 @@ jobs:
       with:
         args: >
           --changelog-file=database/changelog.xml
+          --driver=com.google.cloud.spanner.jdbc.JdbcDriver
           --search-path=/github/workspace
           --classpath=/github/workspace/liquibase-libs/liquibase-spanner-all.jar
           --url=jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db
