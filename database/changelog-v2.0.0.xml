@@ -6,8 +6,8 @@
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
     <changeSet id="add-phone-number-to-users" author="suneel">
-        <addColumn tableName="users">
-            <column name="phone_number" type="STRING(50)">
+        <addColumn tableName="Accounts">
+            <column name="owner_address" type="STRING(50)">
                 <constraints nullable="true"/>
             </column>
         </addColumn>
