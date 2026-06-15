@@ -1,4 +1,4 @@
-# Spanner Schema Changes CI/CD
+# Google Spanner Database Schema Changes CI/CD
 
 A CI/CD pipeline for managing Google Cloud Spanner database schema migrations using **Liquibase** and **GitHub Actions**. This project automates schema deployment to Spanner via ChangeSets defined in XML, with a local emulator for testing and a production-like GCP instance for staging.
 
