@@ -14,11 +14,9 @@ jobs:
       id-token: 'write'
 
     steps:
-    # Fix: Upgrade to major version 6 for absolute Node 24 compliance
     - name: Checkout Code
       uses: actions/checkout@v6
 
-    # Upgraded to v3 for native Node 24 support
     - name: Authenticate to Google Cloud
       id: auth
       uses: google-github-actions/auth@v3
@@ -26,21 +24,24 @@ jobs:
         workload_identity_provider: 'projects/947330204934/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
         service_account: 'spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com'
 
+    # Fix: We download the jar directly into a local "plugins" directory
     - name: Download Cloud Spanner Liquibase Extension
       run: |
-        mkdir -p liquibase-libs
-        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o liquibase-libs/liquibase-spanner-all.jar
+        mkdir -p plugins
+        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o plugins/liquibase-spanner-all.jar
 
+    # Fix: We switch from the simple "uses: docker://" syntax to an explicit script 
+    # so we can map the plugins directory directly into Liquibase's internal library path.
     - name: Run Liquibase Migration
-      uses: docker://liquibase/liquibase:4.27
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
-      with:
-        args: >
-          --changelog-file=database/changelog.xml
-          --driver=com.google.cloud.spanner.jdbc.JdbcDriver
-          --database-class=liquibase.ext.spanner.CloudSpannerDatabase
-          --search-path=/github/workspace
-          --classpath=/github/workspace/liquibase-libs/liquibase-spanner-all.jar
-          --url=jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db
+      run: |
+        docker run --rm \
+          -v "${{ github.workspace }}:/github/workspace" \
+          -v "${{ github.workspace }}/plugins:/liquibase/plugins" \
+          -e GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
+          liquibase/liquibase:4.27 \
+          --changelog-file=database/changelog.xml \
+          --driver=com.google.cloud.spanner.jdbc.JdbcDriver \
+          --database-class=liquibase.ext.spanner.CloudSpannerDatabase \
+          --search-path=/github/workspace \
+          --url=jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db \
           update
