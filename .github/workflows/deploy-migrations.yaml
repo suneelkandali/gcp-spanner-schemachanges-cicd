@@ -14,16 +14,11 @@ jobs:
       id-token: 'write'
 
     steps:
-    # 1. Upgraded from v4 to v4.2.2 (or use @v4 if you want to rely on their tag shift, 
-    # but explicitly pinning minor/patch or bumping to a newer release clears the warning)
+    # Fix: Pin to v4.2.2 to explicitly target the clean Node 24 runtime
     - name: Checkout Code
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          database
-          liquibase-libs
+      uses: actions/checkout@v4.2.2
 
-    # 2. Upgraded from v2 to v3 (Native Node 24 support)
+    # Upgraded to v3 for native Node 24 support
     - name: Authenticate to Google Cloud
       id: auth
       uses: google-github-actions/auth@v3
