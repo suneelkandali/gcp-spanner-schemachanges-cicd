@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="20260615-01" author="platform-eng">
+        <createTable tableName="Accounts">
+            <column name="AccountId" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="AccountName" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="OwnerEmail" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CreatedTimestamp" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex indexName="Idx_Accounts_UniqueEmail" tableName="Accounts" unique="true">
+            <column name="OwnerEmail"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

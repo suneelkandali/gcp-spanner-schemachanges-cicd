@@ -1,0 +1,45 @@
+name: Execute Spanner Migrations
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'database/**'
+
+jobs:
+  run-migration:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        # Replace 1234567890 with your numeric Project Number
+        workload_identity_provider: 'projects/1234567890/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+        service_account: 'spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com'
+
+    # Fixes: Driver Classloader Missing Error
+    - name: Download Cloud Spanner Liquibase Extension
+      run: |
+        mkdir -p liquibase-libs
+        curl -L https://github.com/cloudspannerecosystem/liquibase-spanner/releases/download/4.27.0/liquibase-spanner-4.27.0-all.jar -o liquibase-libs/liquibase-spanner-all.jar
+
+    # Fixes: Search Path / Directory Missing Errors
+    - name: Run Liquibase Migration
+      uses: docker://liquibase/liquibase:4.27
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+      with:
+        args: >
+          --changelog-file=database/changelog.xml
+          --search-path=${{ github.workspace }}
+          --classpath=${{ github.workspace }}/liquibase-libs/liquibase-spanner-all.jar
+          --url=jdbc:cloudspanner:/projects/gcp-spannerdb-cicd/instances/prod-like-instance/databases/target-app-db
+          update
