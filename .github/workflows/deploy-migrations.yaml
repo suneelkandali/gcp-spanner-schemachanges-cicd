@@ -6,10 +6,6 @@ on:
     paths:
       - 'database/**'
 
-# Fix: Force the runner to execute javascript actions natively on Node 24
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 jobs:
   run-migration:
     runs-on: ubuntu-latest
@@ -18,12 +14,19 @@ jobs:
       id-token: 'write'
 
     steps:
+    # 1. Upgraded from v4 to v4.2.2 (or use @v4 if you want to rely on their tag shift, 
+    # but explicitly pinning minor/patch or bumping to a newer release clears the warning)
     - name: Checkout Code
       uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          database
+          liquibase-libs
 
+    # 2. Upgraded from v2 to v3 (Native Node 24 support)
     - name: Authenticate to Google Cloud
       id: auth
-      uses: google-github-actions/auth@v2
+      uses: google-github-actions/auth@v3
       with:
         workload_identity_provider: 'projects/947330204934/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
         service_account: 'spanner-migrator@gcp-spannerdb-cicd.iam.gserviceaccount.com'
