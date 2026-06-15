@@ -14,9 +14,9 @@ jobs:
       id-token: 'write'
 
     steps:
-    # Fix: Pin to v4.2.2 to explicitly target the clean Node 24 runtime
+    # Fix: Upgrade to major version 6 for absolute Node 24 compliance
     - name: Checkout Code
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6
 
     # Upgraded to v3 for native Node 24 support
     - name: Authenticate to Google Cloud
