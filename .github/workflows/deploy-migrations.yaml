@@ -32,10 +32,14 @@ jobs:
 
     - name: Run Liquibase Migration
       run: |
+        # 1. Extract just the raw filename from the absolute runner path
+        CREDS_FILENAME=$(basename "${{ steps.auth.outputs.credentials_file_path }}")
+        
+        # 2. Execute the container pointing to the workspace-relative credential path
         docker run --rm \
           -v "${{ github.workspace }}:/liquibase/workspace" \
           -v "${{ github.workspace }}/plugins:/liquibase/lib" \
-          -e GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}" \
+          -e GOOGLE_APPLICATION_CREDENTIALS="/liquibase/workspace/${CREDS_FILENAME}" \
           liquibase/liquibase:4.27 \
           --changelog-file=/liquibase/workspace/database/changelog.xml \
           --driver=com.google.cloud.spanner.jdbc.JdbcDriver \
